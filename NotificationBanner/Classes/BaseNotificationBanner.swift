@@ -150,14 +150,17 @@ open class BaseNotificationBanner: UIView {
 
     /// The main window of the application which banner views are placed on
     private let appWindow: UIWindow? = {
+        var window: UIWindow? = nil
         if #available(iOS 13.0, *) {
-            return UIApplication.shared.connectedScenes
+            window = UIApplication.shared.connectedScenes
                 .first { $0.activationState == .foregroundActive }
                 .map { $0 as? UIWindowScene }
-                .map { $0?.windows.first } ?? UIApplication.shared.delegate?.window ?? nil
+                .map { $0?.windows.first }
         }
-
-        return UIApplication.shared.delegate?.window ?? nil
+        return window
+            ?? UIApplication.shared.delegate?.window
+            ?? UIApplication.shared.keyWindow
+            ?? UIApplication.shared.windows.first { $0.isKeyWindow }
     }()
 
     /// The position the notification banner should slide in from
