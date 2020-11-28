@@ -152,10 +152,9 @@ open class BaseNotificationBanner: UIView {
     private let appWindow: UIWindow? = {
         var window: UIWindow? = nil
         if #available(iOS 13.0, *) {
-            window = UIApplication.shared.connectedScenes
+            let scene = UIApplication.shared.connectedScenes
                 .first { $0.activationState == .foregroundActive }
-                .map { $0 as? UIWindowScene }
-                .map { $0?.windows.first }
+            window = (scene as? UIWindowScene)?.windows.first
         }
         return window
             ?? UIApplication.shared.delegate?.window
