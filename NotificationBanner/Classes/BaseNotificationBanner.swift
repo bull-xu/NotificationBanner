@@ -149,19 +149,22 @@ open class BaseNotificationBanner: UIView {
     var isSuspended: Bool = false
 
     /// The main window of the application which banner views are placed on
-    private let appWindow: UIWindow? = {
+    private var appWindow: UIWindow? {
+        var window: UIWindow? = nil
         if #available(iOS 13.0, *) {
             return UIApplication.shared.connectedScenes
                 .first { $0.activationState == .foregroundActive || $0.activationState == .foregroundInactive }
                 .map { $0 as? UIWindowScene }
                 .map { $0?.windows.first } ?? UIApplication.shared.delegate?.window ?? UIApplication.shared.keyWindow
         }
-
-        return UIApplication.shared.delegate?.window ?? nil
-    }()
+        return window
+            ?? UIApplication.shared.delegate?.window
+            ?? UIApplication.shared.keyWindow
+            ?? UIApplication.shared.windows.first { $0.isKeyWindow }
+    }
 
     /// The position the notification banner should slide in from
-    private(set) var bannerPosition: BannerPosition!
+    private(set) var bannerPosition = BannerPosition.top
 
     /// The notification banner sides edges insets from superview. If presented - spacerView color will be transparent
     internal var bannerEdgeInsets: UIEdgeInsets? = nil {
@@ -307,8 +310,8 @@ open class BaseNotificationBanner: UIView {
             initialSpringVelocity: 1,
             options: [.curveLinear, .allowUserInteraction],
             animations: {
-                self.frame = self.bannerPositionFrame.endFrame
-        })
+                self.frame = self.bannerPositionFrame?.endFrame ?? .zero
+            })
     }
 
     /**
@@ -377,7 +380,7 @@ open class BaseNotificationBanner: UIView {
                 queuePosition: queuePosition
             )
         } else {
-            self.frame = bannerPositionFrame.startFrame
+            self.frame = bannerPositionFrame?.startFrame ?? .zero
 
             if let parentViewController = parentViewController {
                 parentViewController.view.addSubview(self)
@@ -416,8 +419,8 @@ open class BaseNotificationBanner: UIView {
                 options: [.curveLinear, .allowUserInteraction],
                 animations: {
                     BannerHapticGenerator.generate(self.haptic)
-                    self.frame = self.bannerPositionFrame.endFrame
-            }) { (completed) in
+                    self.frame = self.bannerPositionFrame?.endFrame ?? .zero
+                }) { (completed) in
 
                 NotificationCenter.default.post(
                     name: BaseNotificationBanner.BannerDidAppear,
@@ -565,8 +568,8 @@ open class BaseNotificationBanner: UIView {
         UIView.animate(
             withDuration: forced ? animationDuration / 2 : animationDuration,
             animations: {
-                self.frame = self.bannerPositionFrame.startFrame
-        }) { (completed) in
+                self.frame = self.bannerPositionFrame?.startFrame ?? .zero
+            }) { (completed) in
 
             self.removeFromSuperview()
 
